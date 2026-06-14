@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Accident & Hazard Detection System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #dff0fb;
+            --bg-card: rgba(255, 255, 255, 0.82);
+            --border-glow: rgba(14, 130, 210, 0.18);
+            --border-hover: rgba(14, 130, 210, 0.45);
+            --primary: #0e82d2;
+            --secondary: #7c3aed;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --text-main: #0d1b2a;
+            --text-muted: #3d5a73;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-image: 
+                radial-gradient(circle at 15% 25%, rgba(147, 210, 245, 0.65) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(196, 181, 253, 0.4) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(224, 242, 254, 0.55) 0%, transparent 60%);
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(60px) scale(0.99);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            background: var(--bg-card);
+            backdrop-filter: blur(25px);
+            padding: 45px 65px;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 45px;
+            align-items: center;
+        }
+
+        .slide.full-width-layout {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 30px 50px;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0) scale(1);
+        }
+
+        .slide.prev {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-60px) scale(0.99);
+        }
+
+        .slide-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .slide-right {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background: rgba(224, 242, 254, 0.45);
+            border-radius: 20px;
+            border: 1px solid rgba(14, 130, 210, 0.12);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(14, 80, 160, 0.04);
+        }
+
+        /* Slide text styling */
+        .slide-num {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.12;
+            margin-bottom: 18px;
+            background: linear-gradient(120deg, #0b3f6e, #0e82d2, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .desc {
+            font-size: 19px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        .bullets {
+            list-style: none;
+        }
+
+        .bullets li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 16px;
+            font-size: 18.5px;
+            line-height: 1.55;
+            color: var(--text-main);
+        }
+
+        .bullets li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 9px var(--primary);
+        }
+
+        .bullets li.secondary::before {
+            background: var(--secondary);
+            box-shadow: 0 0 9px var(--secondary);
+        }
+
+        .bullets li.success::before {
+            background: var(--success);
+            box-shadow: 0 0 9px var(--success);
+        }
+
+        .bullets li.warning::before {
+            background: var(--warning);
+            box-shadow: 0 0 9px var(--warning);
+        }
+
+        .bullets li.danger::before {
+            background: var(--danger);
+            box-shadow: 0 0 9px var(--danger);
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+            margin-top: 28px;
+        }
+
+        .team-card {
+            background: rgba(14, 130, 210, 0.05);
+            border: 1px solid rgba(14, 130, 210, 0.15);
+            border-radius: 18px;
+            padding: 20px 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .team-card:hover {
+            transform: translateY(-4px);
+            background: rgba(14, 130, 210, 0.09);
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(14, 130, 210, 0.08);
+        }
+
+        .team-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .team-role {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        /* Controls styling */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            padding: 10px 24px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(14, 80, 160, 0.08);
+            border: 1px solid rgba(14, 130, 210, 0.15);
+            z-index: 1000;
+        }
+
+        .btn {
+            background: rgba(14, 130, 210, 0.06);
+            border: 1px solid var(--border-glow);
+            color: var(--text-main);
+            padding: 10px 22px;
+            font-size: 14.5px;
+            font-family: inherit;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(14, 130, 210, 0.15);
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(14, 130, 210, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(14, 130, 210, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary);
+            width: 20px;
+            border-radius: 50px;
+        }
+
+        /* Fullscreen specific */
+        :fullscreen .controls { display: none !important; }
+        :-webkit-full-screen .controls { display: none !important; }
+
+        /* Specific animations and elements */
+        .title-slide {
+            grid-template-columns: 1fr;
+            text-align: center;
+            align-content: center;
+            justify-items: center;
+        }
+
+        .title-slide h1 {
+            font-size: 62px;
+            font-weight: 800;
+            margin-bottom: 22px;
+            line-height: 1.12;
+            background: linear-gradient(135deg, #0b3f6e 20%, #0e82d2, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(14, 130, 210, 0.05);
+            max-width: 1100px;
+        }
+
+        .title-slide .desc {
+            font-size: 22px;
+            max-width: 950px;
+            margin-bottom: 35px;
+        }
+
+        /* Responsive SVG styling */
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .glow-glow {
+            filter: drop-shadow(0px 0px 8px var(--primary));
+        }
+
+        .pulse {
+            animation: pulse-anim 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-anim {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        .connector-line {
+            stroke-dasharray: 6;
+            animation: dash 35s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -1000;
+            }
+        }
+
+        .slide-right svg rect {
+            transition: filter 0.3s ease, opacity 0.3s ease;
+            cursor: pointer;
+        }
+
+        .slide-right svg rect:hover {
+            filter: brightness(1.08);
+            opacity: 0.95;
+        }
+
+        /* Custom Comparison Table style */
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 17px;
+        }
+        .comp-table th, .comp-table td {
+            border: 1px solid rgba(14, 130, 210, 0.15);
+            padding: 13px 18px;
+            text-align: left;
+        }
+        .comp-table th {
+            background: rgba(14, 130, 210, 0.08);
+            font-weight: 700;
+            font-size: 17.5px;
+            color: var(--primary);
+        }
+        .comp-table td strong {
+            color: var(--danger);
+        }
+        .comp-table td span {
+            color: var(--success);
+            font-weight: 600;
+        }
+        .comp-table tr {
+            transition: background-color 0.2s ease;
+        }
+        .comp-table tr:hover {
+            background-color: rgba(14, 130, 210, 0.03);
+        }
+
+        /* Responsive styling */
+        @media (max-width: 992px) {
+            .slide {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+                gap: 15px;
+                padding: 30px;
+                overflow-y: auto;
+            }
+            .slide-right {
+                height: 300px;
+            }
+            h2 {
+                font-size: 30px;
+                margin-bottom: 12px;
+            }
+            .desc {
+                font-size: 15px;
+                margin-bottom: 15px;
+            }
+            body {
+                overflow: auto;
+                height: auto;
+                padding: 20px 0;
+            }
+            .slide-container {
+                height: auto;
+            }
+            .controls {
+                position: static;
+                transform: none;
+                margin: 20px auto;
+                width: fit-content;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        <!-- SLIDE 1: PROBLEM STATEMENT / 10-YEAR fatality STATS -->
+        <div class="slide active" id="slide-1">
+            <div class="slide-left">
+                <div class="slide-num">Slide 1 // Problem Statement</div>
+                <h2>A Silent Crisis: Delayed Rescue Fatalities</h2>
+                <p class="desc">Every year, traffic accidents cause millions of preventable deaths due to delayed accident notification and missing the critical "Golden Hour".</p>
+                <ul class="bullets">
+                    <li class="danger"><strong>12.0 Million Deaths:</strong> The cumulative global road fatality count over the past 10 years (average 1.2M deaths annually, WHO).</li>
+                    <li class="danger"><strong>4.5 Million Lives Lost:</strong> The number of fatalities directly attributed to <strong>delayed medical response</strong> over the last 10 years (approx 38% of all road deaths).</li>
+                    <li class="warning"><strong>35-45 Minutes Delay:</strong> Average notification time on unmonitored road corridors (e.g. Al-Anbar Expressway 1) before local authorities are alerted.</li>
+                    <li class="success"><strong>Under 5 Seconds:</strong> Automated AI notification response, instantly alerting emergency dispatch and preventing up to **1.5 Million deaths** per decade.</li>
+                </ul>
+            </div>
+            <div class="slide-right">
+                <svg viewBox="0 0 450 370" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Big central stat -->
+                    <circle cx="225" cy="115" r="88" fill="rgba(220,38,38,0.06)" stroke="#dc2626" stroke-width="2" stroke-dasharray="8 5"/>
+                    <text x="225" y="98" fill="#dc2626" font-size="44" font-weight="800" text-anchor="middle">4.5M</text>
+                    <text x="225" y="123" fill="#0d1b2a" font-size="14" font-weight="700" text-anchor="middle">Deaths from Delayed Rescues</text>
+                    <text x="225" y="142" fill="#3d5a73" font-size="11.5" text-anchor="middle">(Past 10 Years Globally — WHO)</text>
+
+                    <!-- Clock -->
+                    <circle cx="90" cy="255" r="44" fill="none" stroke="#d97706" stroke-width="2.5"/>
+                    <line x1="90" y1="255" x2="90" y2="222" stroke="#d97706" stroke-width="3"/>
+                    <line x1="90" y1="255" x2="118" y2="255" stroke="#d97706" stroke-width="2.5"/>
+                    <text x="90" y="318" fill="#d97706" font-size="13" font-weight="700" text-anchor="middle">Golden Hour (15 min)</text>
+                    <text x="90" y="334" fill="#3d5a73" font-size="11" text-anchor="middle">Survival ↓ 40% after</text>
+
+                    <!-- AI Response Box -->
+                    <rect x="188" y="210" width="240" height="125" rx="14" fill="rgba(5,150,105,0.07)" stroke="#059669" stroke-width="2"/>
+                    <text x="308" y="238" fill="#059669" font-size="14.5" font-weight="800" text-anchor="middle">🤖 AI Automated Response</text>
+                    <text x="308" y="262" fill="#0d1b2a" font-size="12" text-anchor="middle">Notification delay: <tspan font-weight="800" fill="#dc2626">5 Seconds</tspan></text>
+                    <text x="308" y="282" fill="#0d1b2a" font-size="12" text-anchor="middle">Arrival Time: Reduced by 30 min</text>
+                    <text x="308" y="306" fill="#059669" font-size="13" font-weight="700" text-anchor="middle">✅ Saves up to 1.5M Lives</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: TITLE SLIDE -->
+        <div class="slide title-slide" id="slide-2">
+            <div class="slide-num">Slide 2 // Project Overview</div>
+            <h1>AI-Powered Traffic Accident & Hazard Detection System</h1>
+            <p class="desc">A multi-stage edge-deployed safety pipeline unifying real-time deep learning tracking, kinematic TTC forecasting, fire monitoring, and Bayesian decision fusion.</p>
+            
+            <div class="team-grid" style="max-width: 750px; width: 100%;">
+                <div class="team-card">
+                    <span class="team-name">Mohammed</span>
+                    <span class="team-role">Team Leader & Custom YOLOv10 Training</span>
+                </div>
+                <div class="team-card">
+                    <span class="team-name">Ayman</span>
+                    <span class="team-role">BoT-SORT & YOLO Core Integration</span>
+                </div>
+                <div class="team-card">
+                    <span class="team-name">Hassan</span>
+                    <span class="team-role">Kalman Kinematics & Bayesian Fusion</span>
+                </div>
+                <div class="team-card">
+                    <span class="team-name">Yasser & Muath</span>
+                    <span class="team-role">Cybernetic HUD Interface & Custom Dataset</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: DATASET CURATION & AUGMENTATION -->
+        <div class="slide" id="slide-3">
+            <div class="slide-left">
+                <div class="slide-num">Slide 3 // Custom Dataset & Augmentation</div>
+                <h2>Custom Roboflow Dataset Pipeline</h2>
+                <p class="desc">Creating a robust deep-learning model requires diverse datasets representing regional hazards (e.g. Al-Anbar Expressway and Fallujah roads).</p>
+                <ul class="bullets">
+                    <li><strong>Custom Image Sourcing:</strong> Sourced under Muath's curation specifically targeting highway crashes, dusty weather, and vehicle fires.</li>
+                    <li><strong>15,000 Augmented Images:</strong> Expanded the raw dataset via custom augmentations (contrast shifting, rotations, noise injection, and dust storm glare simulation).</li>
+                    <li class="secondary"><strong>4 Main Classes:</strong> Labeled with precise anchors for: <code>Accident</code>, <code>Fire</code>, <code>Motorcycle</code>, and <code>Vehicle</code>.</li>
+                    <li class="success"><strong>Training Script (train.py):</strong> Multi-epoch GPU training of YOLOv10x producing custom weights (`best.pt`) optimized for edge devices.</li>
+                </ul>
+            </div>
+            <div class="slide-right">
+                <svg viewBox="0 0 450 370" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Data Flow Row -->
+                    <rect x="15" y="18" width="115" height="62" rx="10" fill="rgba(14,130,210,0.07)" stroke="#0e82d2" stroke-width="2"/>
+                    <text x="72" y="44" fill="#0e82d2" font-size="13" font-weight="700" text-anchor="middle">Raw Images</text>
+                    <text x="72" y="62" fill="#3d5a73" font-size="11" text-anchor="middle">9,000 clips</text>
+
+                    <rect x="170" y="18" width="115" height="62" rx="10" fill="rgba(124,58,237,0.07)" stroke="#7c3aed" stroke-width="2"/>
+                    <text x="227" y="42" fill="#7c3aed" font-size="13" font-weight="700" text-anchor="middle">Augment</text>
+                    <text x="227" y="58" fill="#3d5a73" font-size="10.5" text-anchor="middle">Dust, Noise, Blur</text>
+                    <text x="227" y="72" fill="#3d5a73" font-size="10.5" text-anchor="middle">×12 factor</text>
+
+                    <rect x="322" y="18" width="118" height="62" rx="10" fill="rgba(5,150,105,0.07)" stroke="#059669" stroke-width="2.5"/>
+                    <text x="381" y="44" fill="#059669" font-size="13.5" font-weight="800" text-anchor="middle">15,000</text>
+                    <text x="381" y="62" fill="#3d5a73" font-size="11" text-anchor="middle">Augmented frames</text>
+
+                    <path d="M130 49 H170" stroke="#0e82d2" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+                    <path d="M285 49 H322" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arr-purple)"/>
+
+                    <!-- Bar chart container -->
+                    <rect x="15" y="110" width="420" height="240" rx="14" fill="rgba(14,130,210,0.03)" stroke="rgba(14,130,210,0.18)" stroke-width="1.5"/>
+                    <text x="225" y="133" fill="#0d1b2a" font-size="14" font-weight="800" text-anchor="middle">Class Distribution &amp; Dataset Balance</text>
+
+                    <!-- Bar: Vehicles -->
+                    <rect x="55" y="170" width="55" height="115" fill="#0e82d2" rx="6"/>
+                    <text x="82" y="305" fill="#3d5a73" font-size="12" font-weight="700" text-anchor="middle">Vehicle</text>
+                    <text x="82" y="159" fill="#0e82d2" font-size="13" font-weight="800" text-anchor="middle">5,200</text>
+
+                    <!-- Bar: Accidents -->
+                    <rect x="150" y="170" width="55" height="115" fill="#dc2626" rx="6"/>
+                    <text x="177" y="305" fill="#3d5a73" font-size="12" font-weight="700" text-anchor="middle">Accident</text>
+                    <text x="177" y="159" fill="#dc2626" font-size="13" font-weight="800" text-anchor="middle">5,200</text>
+
+                    <!-- Bar: Fires -->
+                    <rect x="245" y="213" width="55" height="72" fill="#d97706" rx="6"/>
+                    <text x="272" y="305" fill="#3d5a73" font-size="12" font-weight="700" text-anchor="middle">Fire</text>
+                    <text x="272" y="202" fill="#d97706" font-size="13" font-weight="800" text-anchor="middle">3,100</text>
+
+                    <!-- Bar: Motorcycles -->
+                    <rect x="340" y="237" width="55" height="48" fill="#7c3aed" rx="6"/>
+                    <text x="367" y="305" fill="#3d5a73" font-size="12" font-weight="700" text-anchor="middle">Moto</text>
+                    <text x="367" y="226" fill="#7c3aed" font-size="13" font-weight="800" text-anchor="middle">1,500</text>
+
+                    <defs>
+                        <marker id="arr-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0e82d2"/>
+                        </marker>
+                        <marker id="arr-purple" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#7c3aed"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: SYSTEM ARCHITECTURE FLOW (FULL SLIDE) -->
+        <div class="slide full-width-layout" id="slide-4">
+            <div class="slide-num">Slide 4 // Pipeline Architecture Flowchart</div>
+            <h2 style="margin-bottom: 6px;">End-to-End Processing Pipeline</h2>
+            <div style="width: 100%; flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                <svg viewBox="0 0 1160 560" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; max-height: 72vh;">
+                    <defs>
+                        <marker id="arr-blue4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0e82d2"/>
+                        </marker>
+                        <marker id="arr-purple4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#7c3aed"/>
+                        </marker>
+                        <marker id="arr-green4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669"/>
+                        </marker>
+                        <marker id="arr-orange4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#d97706"/>
+                        </marker>
+                        <marker id="arr-red4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#dc2626"/>
+                        </marker>
+                        <marker id="arr-slate4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#3d5a73"/>
+                        </marker>
+                        <filter id="bshadow">
+                            <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="rgba(14,80,160,0.12)"/>
+                        </filter>
+                    </defs>
+
+                    <!-- ══ ROW 1 ══ -->
+
+                    <!-- Box 1: Video Input Feed (blue) -->
+                    <rect x="10" y="10" width="330" height="155" rx="16" fill="rgba(14,130,210,0.07)" stroke="#0e82d2" stroke-width="2.5" filter="url(#bshadow)"/>
+                    <rect x="10" y="10" width="330" height="42" rx="16" fill="rgba(14,130,210,0.12)"/>
+                    <text x="175" y="38" fill="#0e82d2" font-size="18" font-weight="800" text-anchor="middle" font-family="Outfit,sans-serif">📹  1. Video Input Feed</text>
+                    <foreignObject x="22" y="58" width="306" height="100">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13.5px;color:#3d5a73;line-height:1.55;font-family:Outfit,sans-serif;text-align:center">
+                            Ingests camera streams <b>asynchronously</b> using thread-safe double-queues to prevent frame delays and ensure a smooth real-time processing feed.
+                        </div>
+                    </foreignObject>
+
+                    <!-- Box 2: YOLOv10 & BoT-SORT (purple) -->
+                    <rect x="415" y="10" width="330" height="155" rx="16" fill="rgba(124,58,237,0.07)" stroke="#7c3aed" stroke-width="2.5" filter="url(#bshadow)"/>
+                    <rect x="415" y="10" width="330" height="42" rx="16" fill="rgba(124,58,237,0.13)"/>
+                    <text x="580" y="38" fill="#7c3aed" font-size="18" font-weight="800" text-anchor="middle" font-family="Outfit,sans-serif">🎯  2. YOLOv10 &amp; BoT-SORT</text>
+                    <foreignObject x="427" y="58" width="306" height="100">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13.5px;color:#3d5a73;line-height:1.55;font-family:Outfit,sans-serif;text-align:center">
+                            Predicts bounding boxes via <b>best.pt custom weights</b> and maintains unique vehicle track IDs across frames using HSV-Cosine ReID appearance matching.
+                        </div>
+                    </foreignObject>
+
+                    <!-- Box 3a: Kalman Motion State (green) -->
+                    <rect x="820" y="10" width="330" height="155" rx="16" fill="rgba(5,150,105,0.07)" stroke="#059669" stroke-width="2.5" filter="url(#bshadow)"/>
+                    <rect x="820" y="10" width="330" height="42" rx="16" fill="rgba(5,150,105,0.13)"/>
+                    <text x="985" y="38" fill="#059669" font-size="18" font-weight="800" text-anchor="middle" font-family="Outfit,sans-serif">📐  3a. Kalman Motion State</text>
+                    <foreignObject x="832" y="58" width="306" height="100">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13.5px;color:#3d5a73;line-height:1.55;font-family:Outfit,sans-serif;text-align:center">
+                            Smoothes bounding box jitter via <b>CBKF</b> and computes velocity &amp; acceleration vectors to detect sudden kinematic anomalies per vehicle.
+                        </div>
+                    </foreignObject>
+
+                    <!-- ══ ROW 2 ══ -->
+
+                    <!-- Box 3b: Stage 2 Event Detector (blue dashed) -->
+                    <rect x="415" y="210" width="330" height="155" rx="16" fill="rgba(14,130,210,0.04)" stroke="#0e82d2" stroke-width="2.5" stroke-dasharray="9 5" filter="url(#bshadow)"/>
+                    <rect x="415" y="210" width="330" height="42" rx="16" fill="rgba(14,130,210,0.09)"/>
+                    <text x="580" y="238" fill="#0e82d2" font-size="18" font-weight="800" text-anchor="middle" font-family="Outfit,sans-serif">🔍  3b. Stage 2 Event Detector</text>
+                    <foreignObject x="427" y="258" width="306" height="100">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13.5px;color:#3d5a73;line-height:1.55;font-family:Outfit,sans-serif;text-align:center">
+                            Instantiates sub-inference models to inspect <b>visual crash indicators</b> and compute per-track accident confidence metrics in real time.
+                        </div>
+                    </foreignObject>
+
+                    <!-- Box 4: ROI Fire Detector (orange) -->
+                    <rect x="820" y="210" width="330" height="155" rx="16" fill="rgba(217,119,6,0.07)" stroke="#d97706" stroke-width="2.5" filter="url(#bshadow)"/>
+                    <rect x="820" y="210" width="330" height="42" rx="16" fill="rgba(217,119,6,0.13)"/>
+                    <text x="985" y="238" fill="#d97706" font-size="18" font-weight="800" text-anchor="middle" font-family="Outfit,sans-serif">🔥  4. ROI Fire Detector</text>
+                    <foreignObject x="832" y="258" width="306" height="100">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13.5px;color:#3d5a73;line-height:1.55;font-family:Outfit,sans-serif;text-align:center">
+                            Crops &amp; pads each vehicle bounding box to detect <b>fire/smoke secondary thermal hazards</b> inside vehicle regions independently.
+                        </div>
+                    </foreignObject>
+
+                    <!-- ══ ROW 3 ══ -->
+
+                    <!-- Box 7: Web HUD (blue) -->
+                    <rect x="10" y="410" width="330" height="140" rx="16" fill="rgba(14,130,210,0.07)" stroke="#0e82d2" stroke-width="2.5" filter="url(#bshadow)"/>
+                    <rect x="10" y="410" width="330" height="42" rx="16" fill="rgba(14,130,210,0.12)"/>
+                    <text x="175" y="438" fill="#0e82d2" font-size="18" font-weight="800" text-anchor="middle" font-family="Outfit,sans-serif">🖥️  7. Web HUD Dashboard</text>
+                    <foreignObject x="22" y="458" width="306" height="86">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13.5px;color:#3d5a73;line-height:1.55;font-family:Outfit,sans-serif;text-align:center">
+                            Displays <b>glassmorphic HUD</b>, real-time telemetry, WebSocket video streams, sound alarms, and confirmed-incident logs to operators.
+                        </div>
+                    </foreignObject>
+
+                    <!-- Box 6: FastAPI (slate) -->
+                    <rect x="415" y="410" width="330" height="140" rx="16" fill="rgba(61,90,115,0.07)" stroke="#3d5a73" stroke-width="2.5" filter="url(#bshadow)"/>
+                    <rect x="415" y="410" width="330" height="42" rx="16" fill="rgba(61,90,115,0.13)"/>
+                    <text x="580" y="438" fill="#3d5a73" font-size="18" font-weight="800" text-anchor="middle" font-family="Outfit,sans-serif">⚡  6. FastAPI server.py</text>
+                    <foreignObject x="427" y="458" width="306" height="86">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13.5px;color:#3d5a73;line-height:1.55;font-family:Outfit,sans-serif;text-align:center">
+                            Hosts <b>API routing hooks</b>, triggers parallel processor tasks, handles user video uploads, and streams results to the HUD in real time.
+                        </div>
+                    </foreignObject>
+
+                    <!-- Box 5: Bayesian Fusion (red, pulsing) -->
+                    <rect x="820" y="410" width="330" height="140" rx="16" fill="rgba(220,38,38,0.07)" stroke="#dc2626" stroke-width="3" class="pulse" filter="url(#bshadow)"/>
+                    <rect x="820" y="410" width="330" height="42" rx="16" fill="rgba(220,38,38,0.13)"/>
+                    <text x="985" y="438" fill="#dc2626" font-size="18" font-weight="800" text-anchor="middle" font-family="Outfit,sans-serif">⚠️  5. Bayesian Decision Fusion</text>
+                    <foreignObject x="832" y="458" width="306" height="86">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:13.5px;color:#3d5a73;line-height:1.55;font-family:Outfit,sans-serif;text-align:center">
+                            Fuses <b>11 kinematic flags</b> into a posterior accident probability. Triggers emergency alarm when risk score ≥ 60% (BAYES_THRESH).
+                        </div>
+                    </foreignObject>
+
+                    <!-- ══ ARROWS ══ -->
+                    <!-- Row 1: 1→2  2→3a -->
+                    <path d="M 340 87 H 415" stroke="#0e82d2" stroke-width="3" marker-end="url(#arr-blue4)" class="connector-line"/>
+                    <path d="M 745 87 H 820" stroke="#7c3aed" stroke-width="3" marker-end="url(#arr-purple4)" class="connector-line"/>
+                    <!-- 2↓3b  3a↓4 -->
+                    <path d="M 580 165 V 210" stroke="#7c3aed" stroke-width="3" marker-end="url(#arr-purple4)" class="connector-line"/>
+                    <path d="M 985 165 V 210" stroke="#059669" stroke-width="3" marker-end="url(#arr-green4)" class="connector-line"/>
+                    <!-- 4↓5  3b↓6 -->
+                    <path d="M 985 365 V 410" stroke="#d97706" stroke-width="3" marker-end="url(#arr-orange4)" class="connector-line"/>
+                    <path d="M 580 365 V 410" stroke="#0e82d2" stroke-width="3" marker-end="url(#arr-blue4)" class="connector-line"/>
+                    <!-- Row 3: 5→6→7 (left direction) -->
+                    <path d="M 820 480 H 745" stroke="#dc2626" stroke-width="3" marker-end="url(#arr-red4)" class="connector-line"/>
+                    <path d="M 415 480 H 340" stroke="#3d5a73" stroke-width="3" marker-end="url(#arr-slate4)" class="connector-line"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: CODE COMPARISON & ARCHITECTURE IMPROVEMENTS -->
+        <div class="slide" id="slide-5">
+            <div class="slide-left">
+                <div class="slide-num">Slide 5 // Code Improvements</div>
+                <h2>Spaghetti Drafts vs. Modular Production</h2>
+                <p class="desc">A structural analysis showing how the codebase was optimized from an exploratory Colab script into a production-grade safety platform.</p>
+                
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th>Architectural Metric</th>
+                            <th>Colab Drafts (Old)</th>
+                            <th>Modular Production (New)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>File Structures</strong></td>
+                            <td>Single monolithic script (heavy to manage)</td>
+                            <td><span>5 isolated module files</span> (SOLID design)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Threading Logic</strong></td>
+                            <td>Sequential blocks (causes GPU & CPU lag)</td>
+                            <td><span>Multi-threaded FIFO queues</span> (smooth feed)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kalman Filter</strong></td>
+                            <td>Fixed variance (breaks on occlusion)</td>
+                            <td><span>Confidence-Based adaptive KF</span> (CBKF)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Re-ID Tracker</strong></td>
+                            <td>None (loses ID immediately in traffic)</td>
+                            <td><span>AppearanceBank HSV Cosine Re-ID</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TTC Math Model</strong></td>
+                            <td>Static linear calculations (flat)</td>
+                            <td><span>Probabilistic TTC covariance projection</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Inference Speed</strong></td>
+                            <td>12 - 15 FPS (PyTorch weights)</td>
+                            <td><span>35+ FPS</span> (ONNX INT8 quantized model)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="slide-right">
+                <svg viewBox="0 0 450 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Before Spaghetti vs After Modular -->
+                    <rect x="20" y="30" width="180" height="290" rx="12" fill="rgba(220,38,38,0.02)" stroke="#dc2626" stroke-width="1.5"/>
+                    <text x="110" y="52" fill="#dc2626" font-size="12" font-weight="800" text-anchor="middle">Colab Draft (Mon monolithic)</text>
+                    
+                    <!-- Messy lines representing spaghetti -->
+                    <path d="M40 90 C 80 140, 120 70, 180 120 C 130 180, 50 130, 80 250 C 140 210, 160 280, 50 280" stroke="#dc2626" stroke-width="1.5" opacity="0.3" fill="none"/>
+                    <rect x="40" y="140" width="140" height="40" rx="6" fill="#dc2626" opacity="0.1"/>
+                    <text x="110" y="164" fill="#dc2626" font-size="10" font-weight="700" text-anchor="middle">Single-Thread blockages</text>
+
+                    <!-- Optimized modular -->
+                    <rect x="250" y="30" width="180" height="290" rx="12" fill="rgba(5,150,105,0.02)" stroke="#059669" stroke-width="2"/>
+                    <text x="340" y="52" fill="#059669" font-size="12" font-weight="800" text-anchor="middle">Modular Production Code</text>
+
+                    <rect x="270" y="80" width="140" height="35" rx="6" fill="#059669" opacity="0.1"/>
+                    <text x="340" y="101" fill="#059669" font-size="9" font-weight="700" text-anchor="middle">trackers.py (CBKF & ReID)</text>
+
+                    <rect x="270" y="130" width="140" height="35" rx="6" fill="#059669" opacity="0.1"/>
+                    <text x="340" y="151" fill="#059669" font-size="9" font-weight="700" text-anchor="middle">risk.py (Probabilistic TTC)</text>
+
+                    <rect x="270" y="180" width="140" height="35" rx="6" fill="#059669" opacity="0.1"/>
+                    <text x="340" y="201" fill="#059669" font-size="9" font-weight="700" text-anchor="middle">fire.py (Dynamic ROI)</text>
+
+                    <rect x="270" y="230" width="140" height="35" rx="6" fill="#059669" opacity="0.1"/>
+                    <text x="340" y="251" fill="#059669" font-size="9" font-weight="700" text-anchor="middle">pipeline.py (ONNX / FIFO)</text>
+                    
+                    <!-- Performance Speedup -->
+                    <circle cx="305" cy="285" r="18" fill="#059669"/>
+                    <text x="305" y="289" fill="#ffffff" font-size="9.5" font-weight="800" text-anchor="middle" font-family="'Outfit'">35+</text>
+                    <text x="335" y="289" fill="#059669" font-size="11" font-weight="800" font-family="'Outfit'">FPS Output</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: VISION & TRACKING -->
+        <div class="slide" id="slide-6">
+            <div class="slide-left">
+                <div class="slide-num">Slide 6 // Vision & Tracking</div>
+                <h2>Multi-Object Tracking & GMC</h2>
+                <p class="desc">A dynamic bounding-box framework tracking fast vehicle objects and smoothing coordinates under severe external camera shake.</p>
+                <ul class="bullets">
+                    <li><strong>Custom Weights (best.pt):</strong> Specially trained custom YOLOv10 weights to predict vehicle positions in dust storms.</li>
+                    <li><strong>BoT-SORT Tracker:</strong> Maintains unique vehicle track IDs over long periods, handling occlusions and overlaps.</li>
+                    <li class="success"><strong>Global Motion Compensation:</strong> Optical Flow GMC vectors are subtracted from coordinates to prevent camera shaking false alarms.</li>
+                </ul>
+            </div>
+            <div class="slide-right">
+                <svg viewBox="0 0 450 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Simulated camera frame -->
+                    <rect x="20" y="30" width="410" height="290" rx="12" fill="none" stroke="#3d5a73" stroke-width="1"/>
+                    
+                    <!-- Grid background -->
+                    <g stroke="rgba(14,130,210,0.06)" stroke-width="1">
+                        <line x1="20" y1="90" x2="430" y2="90"/>
+                        <line x1="20" y1="180" x2="430" y2="180"/>
+                        <line x1="20" y1="270" x2="430" y2="270"/>
+                        <line x1="120" y1="30" x2="120" y2="320"/>
+                        <line x1="240" y1="30" x2="240" y2="320"/>
+                    </g>
+
+                    <!-- GMC camera compensation vectors -->
+                    <path d="M30 45 L65 45" stroke="#059669" stroke-width="2" marker-end="url(#arr-green)"/>
+                    <text x="75" y="48" fill="#059669" font-size="9" font-weight="700">GMC Optical Flow Vector (camera shake adjustment)</text>
+
+                    <!-- Vehicle Bounding Box -->
+                    <rect x="150" y="110" width="180" height="120" rx="8" fill="rgba(14,130,210,0.04)" stroke="#0e82d2" stroke-width="3"/>
+                    <rect x="150" y="82" width="150" height="28" rx="4" fill="#0e82d2"/>
+                    <text x="156" y="100" fill="#ffffff" font-size="11" font-weight="800">Vehicle Instance #14 (Car)</text>
+                    <text x="312" y="100" fill="#0e82d2" font-size="11" font-weight="700">96% Conf</text>
+
+                    <!-- BBox Annotation -->
+                    <text x="240" y="180" fill="#0e82d2" font-size="9" font-weight="700" text-anchor="middle">Active vehicle bounding box coordinates</text>
+
+                    <!-- Velocity vector -->
+                    <path d="M240 170 L340 140" stroke="#7c3aed" stroke-width="3" stroke-dasharray="4 2" marker-end="url(#arr-purple)"/>
+                    <text x="350" y="138" fill="#7c3aed" font-size="9.5" font-weight="800">Velocity Vector (vx, vy)</text>
+                    
+                    <!-- Trajectory dots -->
+                    <path d="M60 240 C 90 210, 110 190, 240 170" stroke="rgba(14,130,210,0.3)" stroke-width="3" stroke-dasharray="6 4"/>
+                    <circle cx="60" cy="240" r="5" fill="#0e82d2"/>
+                    <circle cx="100" cy="220" r="5" fill="#0e82d2"/>
+                    <circle cx="150" cy="195" r="5" fill="#0e82d2"/>
+
+                    <defs>
+                        <marker id="arr-green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669"/>
+                        </marker>
+                        <marker id="arr-purple" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#7c3aed"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: KINEMATICS & PHYSICS ENGINE -->
+        <div class="slide" id="slide-7">
+            <div class="slide-left">
+                <div class="slide-num">Slide 7 // Kinematics & Physics Engine</div>
+                <h2>Kalman Filters & Anomaly Trackers</h2>
+                <p class="desc">Estimates vehicle trajectory dynamics to identify sharp turns, sudden decelerations, and high-risk time-to-collision margins.</p>
+                <ul class="bullets">
+                    <li><strong>Kalman Coordinate Smoothing:</strong> Filters out tracking noise and updates velocity matrices.</li>
+                    <li><strong>Time-to-Collision (TTC):</strong> Kinematic equations alert when impact horizon falls below <code>0.6s</code> bounds.</li>
+                    <li class="warning"><strong>Mahalanobis Anomaly:</strong> Computes innovation covariance matrices to identify sudden lateral lane changes.</li>
+                </ul>
+            </div>
+            <div class="slide-right">
+                <svg viewBox="0 0 450 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Trajectory plot -->
+                    <path d="M50 300 L120 250 L200 220 L300 200" stroke="#8b949e" stroke-width="2" stroke-dasharray="4 4"/>
+                    <text x="60" y="315" fill="#3d5a73" font-size="9" font-weight="600">Raw Track Coordinates (visual jitter)</text>
+
+                    <path d="M50 300 Q 130 240 300 200" stroke="#059669" stroke-width="3"/>
+                    <text x="180" y="250" fill="#059669" font-size="10" font-weight="700">Kalman Smooth State Trajectory</text>
+
+                    <!-- Target Vehicle Point -->
+                    <circle cx="300" cy="200" r="8" fill="#0e82d2" class="pulse"/>
+                    <text x="315" y="204" fill="#0e82d2" font-size="11" font-weight="800">Current state (cx, cy)</text>
+
+                    <!-- Mahalanobis Covariance Ellipse -->
+                    <ellipse cx="300" cy="200" rx="55" ry="32" fill="rgba(220,38,38,0.02)" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 3"/>
+                    <text x="220" y="155" fill="#dc2626" font-size="9" font-weight="700">Mahalanobis Anomaly Boundary (M=4.0)</text>
+
+                    <!-- Prediction Point -->
+                    <line x1="300" y1="200" x2="380" y2="180" stroke="#7c3aed" stroke-width="2" stroke-dasharray="2 2" marker-end="url(#arr-purple)"/>
+                    <circle cx="380" cy="180" r="5" fill="#7c3aed"/>
+                    <text x="390" y="184" fill="#7c3aed" font-size="10" font-weight="700">Prediction (t + dt)</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: BAYESIAN RISK FUSION -->
+        <div class="slide" id="slide-8">
+            <div class="slide-left">
+                <div class="slide-num">Slide 8 // Bayesian Risk Fusion</div>
+                <h2>Multi-Signal Decision Fusion</h2>
+                <p class="desc">Probabilistic fusion of 11 distinct kinematic, overlap, and deep-learning warnings to confirm collisions at a strict 60% threshold.</p>
+                <ul class="bullets">
+                    <li><strong>Likelihood Ratios:</strong> Updates prior odds based on overlap IoU, contact logs, TTC limits, and decelerations.</li>
+                    <li><strong>State Machine Flow:</strong> Manages state progression for object instances.</li>
+                    <li class="danger"><strong>60% Decision Boundary:</strong> Standardized via <code>BAYES_THRESH = 0.6</code> in config file to trigger alarms.</li>
+                </ul>
+            </div>
+            <div class="slide-right">
+                <svg viewBox="0 0 450 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Signals Flow -->
+                    <rect x="20" y="20" width="100" height="22" rx="4" fill="rgba(14,130,210,0.06)" stroke="#0e82d2" stroke-width="1"/>
+                    <text x="70" y="34" fill="#0d1b2a" font-size="8" text-anchor="middle">Overlap IoU (30%+)</text>
+
+                    <rect x="20" y="55" width="100" height="22" rx="4" fill="rgba(14,130,210,0.06)" stroke="#0e82d2" stroke-width="1"/>
+                    <text x="70" y="69" fill="#0d1b2a" font-size="8" text-anchor="middle">TTC Critical (&lt;0.6s)</text>
+
+                    <rect x="20" y="90" width="100" height="22" rx="4" fill="rgba(14,130,210,0.06)" stroke="#0e82d2" stroke-width="1"/>
+                    <text x="70" y="104" fill="#0d1b2a" font-size="8" text-anchor="middle">Mahalanobis Vector</text>
+
+                    <rect x="20" y="125" width="100" height="22" rx="4" fill="rgba(14,130,210,0.06)" stroke="#0e82d2" stroke-width="1"/>
+                    <text x="70" y="139" fill="#0d1b2a" font-size="8" text-anchor="middle">Sudden Decel</text>
+
+                    <!-- Fusion Node -->
+                    <circle cx="215" cy="80" r="35" fill="#e8f4ff" stroke="#7c3aed" stroke-width="2" class="pulse"/>
+                    <text x="215" y="77" fill="#7c3aed" font-size="10" font-weight="800" text-anchor="middle">Bayesian</text>
+                    <text x="215" y="89" fill="#7c3aed" font-size="9" font-weight="600" text-anchor="middle">Fusion Core</text>
+
+                    <!-- Signal connectors -->
+                    <path d="M120 31 L 182 65" stroke="#8b949e" stroke-width="1.5"/>
+                    <path d="M120 66 L 180 75" stroke="#8b949e" stroke-width="1.5"/>
+                    <path d="M120 101 L 180 85" stroke="#8b949e" stroke-width="1.5"/>
+                    <path d="M120 136 L 182 95" stroke="#8b949e" stroke-width="1.5"/>
+
+                    <!-- Decision output -->
+                    <line x1="250" y1="80" x2="310" y2="80" stroke="#059669" stroke-width="2" stroke-dasharray="4" marker-end="url(#arr-green)"/>
+                    <rect x="310" y="60" width="125" height="40" rx="6" fill="#e8f4ff" stroke="#059669" stroke-width="2"/>
+                    <text x="372" y="78" fill="#059669" font-size="10" font-weight="800" text-anchor="middle">ACCIDENT CONFIRMED</text>
+                    <text x="372" y="91" fill="#0d1b2a" font-size="8.5" font-weight="600" text-anchor="middle">Risk Score &gt;= 60%</text>
+
+                    <!-- State Machine Lifecycle -->
+                    <g transform="translate(10, 190)">
+                        <!-- Flow Line -->
+                        <line x1="30" y1="40" x2="400" y2="40" stroke="#8b949e" stroke-width="2"/>
+                        
+                        <!-- States -->
+                        <circle cx="40" cy="40" r="16" fill="#059669"/>
+                        <text x="40" y="70" fill="#059669" font-size="8" font-weight="700" text-anchor="middle">NORMAL</text>
+
+                        <circle cx="110" cy="40" r="16" fill="#d97706"/>
+                        <text x="110" y="70" fill="#d97706" font-size="8" font-weight="700" text-anchor="middle">APPROACH</text>
+
+                        <circle cx="180" cy="40" r="16" fill="#dc2626"/>
+                        <text x="180" y="70" fill="#dc2626" font-size="8" font-weight="700" text-anchor="middle">CRITICAL</text>
+
+                        <circle cx="250" cy="40" r="16" fill="#a00000"/>
+                        <text x="250" y="70" fill="#a00000" font-size="8" font-weight="700" text-anchor="middle">COLLIDED</text>
+
+                        <circle cx="320" cy="40" r="16" fill="#7c3aed"/>
+                        <text x="320" y="70" fill="#7c3aed" font-size="8" font-weight="700" text-anchor="middle">POST</text>
+
+                        <circle cx="390" cy="40" r="16" fill="#333333" stroke="#8b949e"/>
+                        <text x="390" y="70" fill="#3d5a73" font-size="8" font-weight="700" text-anchor="middle">BURNED</text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: WEB HUD -->
+        <div class="slide" id="slide-9">
+            <div class="slide-left">
+                <div class="slide-num">Slide 9 // Interactive Interface</div>
+                <h2>Glassmorphic Cybernetic HUD</h2>
+                <p class="desc">A web UI dashboard showcasing real-time diagnostics, visual alerts, telemetry dials, and sound warning configurations.</p>
+                <ul class="bullets">
+                    <li><strong>Telemetry Charts:</strong> Real-time charts detailing speed changes and Bayesian logs.</li>
+                    <li><strong>Dynamic Diagnostics:</strong> Color-coded alerts showing HIGH/MEDIUM hazard zones.</li>
+                    <li class="secondary"><strong>WebSockets:</strong> Auto-reconnect link communicating with the FastAPI backend.</li>
+                </ul>
+            </div>
+            <div class="slide-right">
+                <svg viewBox="0 0 450 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Dashboard Frame -->
+                    <rect x="20" y="20" width="410" height="310" rx="16" fill="#e8f4ff" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+                    
+                    <!-- HUD Top Bar -->
+                    <rect x="20" y="20" width="410" height="35" rx="16" fill="rgba(255,255,255,0.02)"/>
+                    <circle cx="40" cy="37" r="5" fill="#dc2626"/>
+                    <circle cx="55" cy="37" r="5" fill="#d97706"/>
+                    <circle cx="70" cy="37" r="5" fill="#059669"/>
+                    <text x="225" y="41" fill="#3d5a73" font-size="10" font-weight="600" text-anchor="middle">ACCIDENT DETECTION DASHBOARD HUD</text>
+                    <rect x="370" y="28" width="50" height="18" rx="9" fill="rgba(5,150,105,0.1)" stroke="#059669" stroke-width="1"/>
+                    <text x="395" y="40" fill="#059669" font-size="8" font-weight="700" text-anchor="middle">ONLINE</text>
+
+                    <!-- Feed Container -->
+                    <rect x="35" y="75" width="200" height="150" rx="8" fill="#0d1b2a" stroke="rgba(255,255,255,0.05)"/>
+                    <path d="M 90 150 L 120 120 L 150 160 L 180 130" stroke="#059669" stroke-width="2" fill="none"/>
+                    <text x="135" y="210" fill="#059669" font-size="10" font-weight="700" text-anchor="middle">Video Stream Processing</text>
+                    <rect x="45" y="85" width="60" height="40" rx="3" fill="none" stroke="#dc2626" stroke-width="2"/>
+                    <text x="50" y="95" fill="#dc2626" font-size="8" font-weight="700">COLLISION</text>
+
+                    <!-- Right Column Metrics -->
+                    <rect x="250" y="75" width="165" height="65" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)"/>
+                    <text x="265" y="95" fill="#3d5a73" font-size="9" font-weight="600">CONFIRMED INCIDENTS</text>
+                    <text x="265" y="125" fill="#dc2626" font-size="28" font-weight="800">03</text>
+
+                    <rect x="250" y="150" width="165" height="75" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)"/>
+                    <text x="265" y="170" fill="#3d5a73" font-size="9" font-weight="600">DIAGNOSTICS LOG</text>
+                    <text x="265" y="190" fill="#d97706" font-size="8" font-weight="700">12:41:02 [WARN] Vehicle #12 close distance</text>
+                    <text x="265" y="205" fill="#dc2626" font-size="8" font-weight="700">12:41:04 [CRIT] Collision confirmed #12 &amp; #14</text>
+
+                    <!-- Bottom System Stats -->
+                    <rect x="35" y="240" width="380" height="75" rx="8" fill="rgba(255,255,255,0.01)" stroke="rgba(255,255,255,0.04)"/>
+                    <text x="50" y="260" fill="#3d5a73" font-size="9" font-weight="600">Processing Speed</text>
+                    <text x="50" y="295" fill="#0d1b2a" font-size="20" font-weight="800">42.5 <tspan font-size="10" font-weight="500" fill="#8b949e">FPS</tspan></text>
+
+                    <text x="180" y="260" fill="#3d5a73" font-size="9" font-weight="600">GPU Temp</text>
+                    <text x="180" y="295" fill="#0d1b2a" font-size="20" font-weight="800">68°C</text>
+
+                    <text x="300" y="260" fill="#3d5a73" font-size="9" font-weight="600">CPU Load</text>
+                    <text x="300" y="295" fill="#0d1b2a" font-size="20" font-weight="800">32%</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide Navigation Dock -->
+    <div class="controls">
+        <button class="btn" id="prev-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Prev
+        </button>
+        <div class="dots" id="dots-container"></div>
+        <button class="btn" id="next-btn">
+            Next
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const dotsContainer = document.getElementById('dots-container');
+        let currentSlide = 0;
+
+        // Initialize dots
+        slides.forEach((_, idx) => {
+            const dot = document.createElement('div');
+            dot.classList.add('dot');
+            if (idx === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(idx));
+            dotsContainer.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.dot');
+
+        function updateSlides() {
+            slides.forEach((slide, idx) => {
+                slide.classList.remove('active', 'prev');
+                if (idx === currentSlide) {
+                    slide.classList.add('active');
+                } else if (idx < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === currentSlide);
+            });
+        }
+
+        function goToSlide(idx) {
+            currentSlide = idx;
+            updateSlides();
+        }
+
+        // Initialize first slide
+        updateSlides();
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlides();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlides();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                if (currentSlide < slides.length - 1) {
+                    currentSlide++;
+                    updateSlides();
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updateSlides();
+                }
+            } else if (e.key.toLowerCase() === 'f') {
+                toggleFullscreen();
+            }
+        });
+
+        // Fullscreen functionality (triggered via 'f' key shortcut)
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error enabling fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
